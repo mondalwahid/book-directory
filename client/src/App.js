@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 const App = () => {
   const [usersdata, setUsersdata] = useState();
+  const [singlebookdetails, setSinglebookdetails] = useState()
 
   useEffect(() => {
     fetch("/books-list")
