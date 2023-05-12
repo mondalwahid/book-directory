@@ -1,7 +1,22 @@
 const express = require("express");
+// const mysql = require('mysql')
 const app = express();
 const books = require('./Data')
 app.use(express.json())
+
+
+// const connection = mysql.createConnection({
+//     host: '15.206.6.55',
+//     user: 'hourlyrooms',
+//     password: 'Hourlyr0Oms@1584',
+//     database: 'test'
+//   })
+//   connection.connect()
+//   connection.query('SELECT 1 + 1 AS solution', (err, rows, fields) => {
+//     if (err) throw err
+//     console.log('The solution is: ', rows[0].solution)
+//   })
+//   connection.end()
 
 
 // Api Routes
@@ -53,7 +68,7 @@ app.delete(`/book/:id`, function(req, res){
     for(i = 0; i < books.length; i++){
         if(books[i].id == id){
             function findIndexes(e){
-                return e.id == books[i].id 
+                return e.id == books[i].id;
             }
             let bookIndex = books.findIndex(findIndexes);
             books.splice(bookIndex,1);
