@@ -7,7 +7,2669 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BOOKS {
-  id       Int    @id @default(autoincrement())
-  BookName String @db.VarChar(255)
+model bank_details {
+  id               Int     @id @default(autoincrement())
+  hotel_id         Int?
+  beneficiary_name String? @db.VarChar(200)
+  bank_name        String? @db.VarChar(200)
+  address          String? @db.VarChar(200)
+  account          String? @db.VarChar(200)
+  account_type     String? @db.VarChar(200)
+  micr_code        String? @db.VarChar(200)
+  ifsc             String? @db.VarChar(200)
+}
+
+model booking_collection_remark {
+  id             BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  booking_id     BigInt         @db.UnsignedBigInt
+  update_person  BigInt         @db.UnsignedBigInt
+  remark         String         @db.Text
+  created_at     DateTime       @default(now()) @db.DateTime(0)
+  bravo_bookings bravo_bookings @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "booking_foreign_key")
+  users          users          @relation(fields: [update_person], references: [id], onUpdate: Restrict, map: "update_person_foreign_key")
+
+  @@index([booking_id], map: "booking_foreign_key")
+  @@index([update_person], map: "update_person_foreign_key")
+}
+
+model booking_passengers {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  flight_id      Int?
+  flight_seat_id Int?
+  booking_id     Int?
+  seat_type      String?
+  email          String?
+  first_name     String?
+  last_name      String?
+  phone          String?
+  dob            DateTime? @db.DateTime(0)
+  price          Decimal?  @db.Decimal(12, 2)
+  id_card        String?
+  create_user    BigInt?
+  update_user    BigInt?
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+  deleted_at     DateTime? @db.Timestamp(0)
+}
+
+model bookings {
+  id         Int      @id @default(autoincrement())
+  id_item    Int      @default(0)
+  the_date   DateTime @default(dbgenerated("'0000-00-00'")) @db.Date
+  id_state   Int      @default(0)
+  id_booking Int      @default(0)
+
+  @@index([id_item], map: "id_item")
+  @@index([id_state], map: "id_state")
+}
+
+model bookings_admin_users {
+  id         Int      @id @default(autoincrement())
+  level      Int      @default(2) @db.TinyInt
+  username   String   @default("") @db.VarChar(20)
+  password   String   @default("") @db.VarChar(32)
+  state      Boolean  @default(true)
+  date_visit DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
+  visits     Int      @default(0)
+}
+
+model bookings_config {
+  id               Int                              @id @default(autoincrement())
+  title            String                           @default("") @db.VarChar(255)
+  num_months       Int                              @default(3) @db.TinyInt
+  default_lang     String                           @default("en") @db.VarChar(6)
+  theme            String                           @default("default") @db.VarChar(50)
+  start_day        bookings_config_start_day        @default(sun)
+  date_format      bookings_config_date_format      @default(eu)
+  click_past_dates bookings_config_click_past_dates @default(off)
+  cal_url          String                           @default("") @db.VarChar(255)
+  local_path       String                           @default("/calendar") @db.VarChar(255)
+  version          String                           @db.VarChar(10)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model bookings_items {
+  id              Int     @id @default(autoincrement())
+  id_user         Int     @default(1)
+  id_ref_external Int
+  desc_en         String  @default("") @db.VarChar(100)
+  desc_es         String  @default("") @db.VarChar(100)
+  list_order      Int     @default(0)
+  state           Boolean @default(true)
+
+  @@index([id_ref_external], map: "id_ref_external")
+  @@index([id_user], map: "id_user")
+}
+
+model bookings_last_update {
+  id       Int      @id @default(autoincrement())
+  id_item  Int      @default(0)
+  date_mod DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
+
+  @@index([id_item], map: "id_item")
+}
+
+model bookings_states {
+  id          Int     @id @default(autoincrement())
+  desc_en     String  @default("") @db.VarChar(100)
+  desc_es     String  @default("") @db.VarChar(100)
+  code        String  @default("") @db.VarChar(10)
+  state       Boolean @default(true)
+  list_order  Int     @default(0)
+  class       String  @default("") @db.VarChar(30)
+  show_in_key Boolean @default(true)
+}
+
+model bravo_airline {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?
+  image_id    Int?
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_airport {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?
+  code        String    @unique(map: "bravo_airport_code_unique")
+  address     String?
+  location_id Int?
+  description String?   @db.Text
+  map_lat     String?   @db.VarChar(20)
+  map_lng     String?   @db.VarChar(20)
+  map_zoom    Int?
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_airrail {
+  id   Int     @id @default(autoincrement())
+  lat  Float?  @db.Float
+  log  Float?  @db.Float
+  name String? @db.VarChar(100)
+}
+
+model bravo_attrs {
+  id                    BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String?       @db.VarChar(255)
+  slug                  String?       @db.VarChar(255)
+  service               String?       @db.VarChar(50)
+  create_user           BigInt?
+  update_user           BigInt?
+  created_at            DateTime?     @db.Timestamp(0)
+  updated_at            DateTime?     @db.Timestamp(0)
+  deleted_at            DateTime?     @db.Timestamp(0)
+  display_type          String?       @db.VarChar(255)
+  hide_in_single        Int?          @db.TinyInt
+  hide_in_filter_search Int?          @db.TinyInt
+  position              Int?          @db.SmallInt
+  bravo_terms           bravo_terms[]
+}
+
+model bravo_attrs_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "bravo_attrs_translations_origin_id_locale_unique")
+}
+
+model bravo_booking_coupons {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  booking_id     BigInt?
+  booking_status String?   @db.VarChar(30)
+  object_id      BigInt?
+  object_model   String?
+  coupon_code    String?
+  coupon_amount  Decimal?  @default(0.00) @db.Decimal(10, 2)
+  coupon_data    String?   @db.Text
+  create_user    BigInt?
+  update_user    BigInt?
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model bravo_booking_meta {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  booking_id  Int?
+  name        String?   @db.VarChar(255)
+  val         String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_booking_payments {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  booking_id            Int?
+  razorpay_payment_id   String?   @db.VarChar(51)
+  payment_gateway       String?   @db.VarChar(50)
+  amount                Decimal?  @db.Decimal(10, 2)
+  currency              String?   @db.VarChar(10)
+  converted_amount      Decimal?  @db.Decimal(10, 2)
+  converted_currency    String?   @db.VarChar(10)
+  exchange_rate         Decimal?  @db.Decimal(10, 2)
+  status                String?   @db.VarChar(30)
+  logs                  String?   @db.Text
+  create_user           Int?
+  update_user           Int?
+  created_at            DateTime? @db.Timestamp(0)
+  updated_at            DateTime? @db.Timestamp(0)
+  code                  String?   @db.VarChar(64)
+  object_id             BigInt?
+  object_model          String?   @db.VarChar(40)
+  meta                  String?   @db.Text
+  deleted_at            DateTime? @db.Timestamp(0)
+  wallet_transaction_id BigInt?
+}
+
+model bravo_bookings {
+  id                        BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  starttime                 Int
+  span                      Int
+  PNR                       Int?
+  code                      String?                     @db.VarChar(64)
+  vendor_id                 Int?
+  customer_id               Int?
+  payment_id                Int?
+  gateway                   String?                     @db.VarChar(50)
+  object_id                 Int?
+  object_model              String?                     @db.VarChar(255)
+  start_date                DateTime?                   @db.DateTime(0)
+  end_date                  DateTime?                   @db.DateTime(0)
+  total                     Decimal?                    @db.Decimal(10, 2)
+  coupon_id                 Int?
+  total_guests              Int?
+  currency                  String?                     @db.VarChar(5)
+  status                    String?                     @db.VarChar(30)
+  status_updated_by         String?                     @db.LongText
+  status1                   String?                     @db.VarChar(30)
+  deposit                   Decimal?                    @db.Decimal(10, 2)
+  deposit_type              String?                     @db.VarChar(30)
+  commission                Decimal?                    @db.Decimal(10, 2)
+  commission_type           String?                     @db.VarChar(150)
+  email                     String?                     @db.VarChar(255)
+  name                      String?                     @db.VarChar(255)
+  first_name                String?                     @db.VarChar(255)
+  last_name                 String?                     @db.VarChar(255)
+  phone                     String?                     @db.VarChar(255)
+  address                   String?                     @db.VarChar(255)
+  address2                  String?                     @db.VarChar(255)
+  city                      String?                     @db.VarChar(255)
+  state                     String?                     @db.VarChar(255)
+  zip_code                  String?                     @db.VarChar(255)
+  country                   String?                     @db.VarChar(255)
+  customer_notes            String?                     @db.Text
+  create_user               Int?
+  update_user               Int?
+  deleted_at                DateTime?                   @db.Timestamp(0)
+  created_at                DateTime?                   @db.DateTime(0)
+  updated_at                DateTime?                   @db.Timestamp(0)
+  customer_deleted_at       DateTime?                   @db.Timestamp(0)
+  buyer_fees                String?                     @db.Text
+  total_before_fees         Decimal?                    @db.Decimal(10, 2)
+  paid_vendor               Int?                        @db.TinyInt
+  object_child_id           BigInt?
+  number                    Int?                        @db.SmallInt
+  paid                      Decimal?                    @db.Decimal(10, 2)
+  pay_now                   Decimal?                    @db.Decimal(10, 2)
+  enquiry                   Boolean                     @default(false)
+  gst_price                 Float
+  wallet_credit_used        Float?
+  wallet_total_used         Float?
+  wallet_transaction_id     BigInt?
+  is_refund_wallet          Int?                        @db.TinyInt
+  vendor_service_fee_amount Decimal?                    @db.Decimal(8, 2)
+  vendor_service_fee        String?                     @db.Text
+  balance                   Int?
+  discount                  Int?
+  app                       Boolean?                    @default(false)
+  is_paid                   Int?                        @db.TinyInt
+  total_before_discount     Decimal?                    @default(0.00) @db.Decimal(10, 2)
+  coupon_amount             Decimal?                    @default(0.00) @db.Decimal(10, 2)
+  update_detail             BigInt?                     @db.UnsignedBigInt
+  admin_created             Int?
+  refund_status             String?                     @db.VarChar(10)
+  check_in                  Int?                        @db.TinyInt
+  platform                  String?                     @db.VarChar(50)
+  version                   String?                     @db.VarChar(50)
+  gst_payment               Int?
+  service_fee               Decimal?                    @db.Decimal(10, 2)
+  sfee1                     Decimal?                    @db.Decimal(10, 2)
+  vendor_commission         Int?                        @default(18)
+  booking_collection_remark booking_collection_remark[]
+  users                     users?                      @relation(fields: [update_detail], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "update_user_foreign_key")
+  bravo_customer_remark     bravo_customer_remark?
+  bravo_dispute             bravo_dispute[]
+  bravo_vendor_remark       bravo_vendor_remark?
+  new_bravo_customer_remark new_bravo_customer_remark[]
+  new_bravo_vendor_remark   new_bravo_vendor_remark[]
+  rzp_order_bookings        rzp_order_bookings[]
+
+  @@index([PNR], map: "PNR")
+  @@index([commission], map: "commission_booking")
+  @@index([update_detail], map: "update_user_foreign_key")
+  @@index([vendor_commission], map: "vendor_commission")
+}
+
+model bravo_bookings_status {
+  id     BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  status String  @db.VarChar(50)
+  color  String? @default("#030202") @db.VarChar(200)
+}
+
+model bravo_car_dates {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  target_id        BigInt?
+  start_date       DateTime? @db.Timestamp(0)
+  end_date         DateTime? @db.Timestamp(0)
+  price            Decimal?  @db.Decimal(12, 2)
+  number           Int?      @db.TinyInt
+  active           Int?      @default(0) @db.TinyInt
+  note_to_customer String?   @db.Text
+  note_to_admin    String?   @db.Text
+  is_instant       Int?      @default(0) @db.TinyInt
+  create_user      BigInt?
+  update_user      BigInt?
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model bravo_car_term {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  term_id     Int?
+  target_id   Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_car_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  faqs        String?   @db.Text
+  address     String?   @db.VarChar(255)
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "bravo_car_translations_locale_index")
+}
+
+model bravo_cars {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title              String?   @db.VarChar(255)
+  slug               String    @db.VarChar(255)
+  content            String?   @db.Text
+  image_id           Int?
+  banner_image_id    Int?
+  location_id        Int?
+  address            String?   @db.VarChar(255)
+  map_lat            String?   @db.VarChar(20)
+  map_lng            String?   @db.VarChar(20)
+  map_zoom           Int?
+  is_featured        Int?      @db.TinyInt
+  gallery            String?   @db.VarChar(255)
+  video              String?   @db.VarChar(255)
+  faqs               String?   @db.Text
+  number             Int?      @db.TinyInt
+  price              Decimal?  @db.Decimal(12, 2)
+  sale_price         Decimal?  @db.Decimal(12, 2)
+  is_instant         Int?      @default(0) @db.TinyInt
+  enable_extra_price Int?      @db.TinyInt
+  extra_price        String?   @db.Text
+  discount_by_days   String?   @db.Text
+  passenger          Int?      @default(0) @db.TinyInt
+  gear               String?   @default("0")
+  baggage            Int?      @default(0) @db.TinyInt
+  door               Int?      @default(0) @db.TinyInt
+  status             String?   @db.VarChar(50)
+  default_state      Int?      @default(1) @db.TinyInt
+  create_user        BigInt?
+  update_user        BigInt?
+  deleted_at         DateTime? @db.Timestamp(0)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+  review_score       Decimal?  @db.Decimal(2, 1)
+
+  @@index([slug], map: "bravo_cars_slug_index")
+}
+
+model bravo_cities {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  hotel_count Int
+  min_price   Int?
+  created_at  DateTime  @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @db.DateTime(0)
+  name1       String?   @db.VarChar(100)
+}
+
+model bravo_contact {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  phone       String?   @db.VarChar(20)
+  message     String?   @db.Text
+  status      String?   @db.VarChar(50)
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_coupon_services {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  coupon_id    BigInt?
+  object_id    BigInt?
+  object_model String?
+  service_id   BigInt?
+  create_user  BigInt?
+  update_user  BigInt?
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model bravo_coupons {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code           String    @unique(map: "bravo_coupons_code_unique") @db.VarChar(50)
+  name           String?
+  amount         Float?
+  discount_type  String?   @db.VarChar(50)
+  end_date       DateTime? @db.DateTime(0)
+  min_total      Float?
+  max_total      Float?
+  services       String?
+  only_for_user  Int?
+  status         String?   @db.VarChar(30)
+  quantity_limit Int?
+  limit_per_user Int?
+  image_id       BigInt?
+  create_user    BigInt?
+  update_user    BigInt?
+  deleted_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+  tandc          String?   @db.LongText
+  detail         String?   @db.VarChar(200)
+}
+
+model bravo_customer_remark {
+  id             Int             @id @default(autoincrement())
+  remark1        String?         @db.VarChar(500)
+  remark2        String?         @db.VarChar(500)
+  remark3        String?         @db.VarChar(500)
+  support_person Int?
+  update1        Int?
+  update2        Int?
+  update3        Int?
+  u_date1        DateTime?       @db.DateTime(0)
+  u_date2        DateTime?       @db.DateTime(0)
+  u_date3        DateTime?       @db.DateTime(0)
+  booking_id     BigInt?         @unique(map: "booking_id") @db.UnsignedBigInt
+  created_at     DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?       @default(now()) @db.Timestamp(0)
+  remark4        String?         @db.Text
+  remark5        String?         @db.Text
+  remark6        String?         @db.Text
+  update4        BigInt?
+  update5        BigInt?
+  update6        BigInt?
+  u_date4        DateTime?       @db.DateTime(0)
+  u_date5        DateTime?       @db.DateTime(0)
+  u_date6        DateTime?       @db.DateTime(0)
+  bravo_bookings bravo_bookings? @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "bravo_customer_remark_booking_foreign_key")
+}
+
+model bravo_deposit {
+  id                          Int      @id @default(autoincrement())
+  percent                     Int?
+  fixed                       Int?
+  login_otp_enabled           Int      @default(1)
+  signup_otp_enabled          Int      @default(1)
+  otp_enabled                 Boolean  @default(true)
+  rzp_key                     String   @db.VarChar(50)
+  is_google_login             String   @default("1") @db.VarChar(100)
+  is_fb_login                 String?  @default("1") @db.VarChar(1)
+  is_review                   Boolean  @default(true)
+  review_timing               Int?     @default(0)
+  minbuildnoforupdate         Int      @default(1)
+  minbuildnoforupdateios      Int      @default(1)
+  iosversionupdate            String   @default("3.0.0") @db.VarChar(100)
+  extranetminbuildnoforupdate Int      @default(1)
+  lba1_tid                    Int
+  lba2_tid                    Int
+  lba3_tid                    Int
+  lba1_title                  String   @db.VarChar(100)
+  lba2_title                  String   @db.VarChar(100)
+  lba3_title                  String   @db.VarChar(100)
+  gst_enable                  Boolean?
+  par_pay_discount            Int      @default(5)
+  full_pay_discount           Int      @default(10)
+}
+
+model bravo_dispute {
+  id             Int             @id @default(autoincrement())
+  booking_id     BigInt?         @db.UnsignedBigInt
+  hotel_id       BigInt?         @db.UnsignedBigInt
+  create_user    Int?
+  created_at     DateTime        @default(now()) @db.Timestamp(0)
+  updated_at     DateTime        @default(now()) @db.Timestamp(0)
+  month          Int?
+  year           Int?
+  status         String?         @db.VarChar(10)
+  invoice_id     Int?
+  remark         String?         @db.VarChar(255)
+  commissions    Float?
+  bravo_bookings bravo_bookings? @relation(fields: [booking_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_id_foreign_key")
+  bravo_hotels   bravo_hotels?   @relation(fields: [hotel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hotel_id_foreign_key")
+  vendor_invoice vendor_invoice? @relation(fields: [invoice_id], references: [id], onUpdate: NoAction, map: "invoice_id_foreign_key")
+
+  @@index([booking_id], map: "booking_id_foreign_key")
+  @@index([hotel_id], map: "hotel_id_foreign_key")
+  @@index([invoice_id], map: "invoice_id_foreign_key")
+}
+
+model bravo_document_type {
+  id            BigInt @id @default(autoincrement())
+  document_type String @db.VarChar(200)
+}
+
+model bravo_enquiries {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  object_id    Int?
+  object_model String?   @db.VarChar(255)
+  name         String?   @db.VarChar(255)
+  email        String?   @db.VarChar(255)
+  phone        String?   @db.VarChar(255)
+  note         String?   @db.Text
+  vendor_id    BigInt?
+  status       String?   @db.VarChar(50)
+  publish_date DateTime? @db.DateTime(0)
+  create_user  BigInt?
+  update_user  BigInt?
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model bravo_gallery_image_type {
+  id         BigInt @id @default(autoincrement())
+  image_type String @db.VarChar(200)
+}
+
+model bravo_hotel_assign {
+  id                                              BigInt       @id @default(autoincrement())
+  hotel_id                                        BigInt       @db.UnsignedBigInt
+  assign_agent_id                                 BigInt       @db.UnsignedBigInt
+  assign_by                                       BigInt       @db.UnsignedBigInt
+  created_at                                      DateTime     @default(now()) @db.Timestamp(0)
+  deleted_at                                      DateTime?    @db.Timestamp(0)
+  deleted_by                                      BigInt?      @db.UnsignedBigInt
+  updated_at                                      DateTime?    @db.Timestamp(0)
+  updated_by                                      BigInt?      @db.UnsignedBigInt
+  users_bravo_hotel_assign_deleted_byTousers      users?       @relation("bravo_hotel_assign_deleted_byTousers", fields: [deleted_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "deleted_by_to_user_relation")
+  users_bravo_hotel_assign_updated_byTousers      users?       @relation("bravo_hotel_assign_updated_byTousers", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updateBy_to_user_realtion")
+  bravo_hotels                                    bravo_hotels @relation(fields: [hotel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "va_to_hotel_relation")
+  users_bravo_hotel_assign_assign_agent_idTousers users        @relation("bravo_hotel_assign_assign_agent_idTousers", fields: [assign_agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "va_to_user_relation")
+  users_bravo_hotel_assign_assign_byTousers       users        @relation("bravo_hotel_assign_assign_byTousers", fields: [assign_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "vah_to_user_relation")
+
+  @@index([deleted_by], map: "deleted_by_to_user_relation")
+  @@index([updated_by], map: "updateBy_to_user_realtion")
+  @@index([hotel_id], map: "va_to_hotel_relation")
+  @@index([assign_agent_id], map: "va_to_user_relation")
+  @@index([assign_by], map: "vah_to_user_relation")
+}
+
+model bravo_hotel_gstin {
+  id           BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  gstin        String       @db.VarChar(50)
+  hotelid      BigInt       @db.UnsignedBigInt
+  created_at   DateTime?    @default(now()) @db.Timestamp(0)
+  updated_at   DateTime?    @db.Timestamp(0)
+  hotel_id     BigInt?
+  bravo_hotels bravo_hotels @relation(fields: [hotelid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "gstin")
+
+  @@index([hotelid], map: "gstin")
+}
+
+model bravo_hotel_payment_option {
+  id             BigInt @id @default(autoincrement())
+  payment_option String @db.VarChar(20)
+}
+
+model bravo_hotel_room_bookings {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  room_id           BigInt?
+  parent_id         BigInt?
+  booking_id        BigInt?   @unique(map: "booking_id")
+  start_date        DateTime? @db.Timestamp(0)
+  end_date          DateTime? @db.Timestamp(0)
+  number            Int?      @db.SmallInt
+  price             Decimal?  @db.Decimal(12, 2)
+  create_user       BigInt?
+  update_user       BigInt?
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+  span              Int?      @default(1)
+  starttime         Int?
+  total_before_fees Float     @default(0) @db.Float
+}
+
+model bravo_hotel_room_dates {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  target_id        BigInt?
+  hotel_id         BigInt?
+  start_date       DateTime? @db.Timestamp(0)
+  end_date         DateTime? @db.Timestamp(0)
+  price            Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price1           Decimal?  @db.Decimal(12, 2)
+  price2           Decimal?  @db.Decimal(12, 2)
+  price3           Decimal?  @db.Decimal(12, 2)
+  price4           Decimal?  @db.Decimal(12, 2)
+  price5           Decimal?  @db.Decimal(12, 2)
+  max_guests       Int?      @db.TinyInt
+  active           Int?      @default(0) @db.TinyInt
+  note_to_customer String?   @db.Text
+  note_to_admin    String?   @db.Text
+  is_instant       Int?      @default(0) @db.TinyInt
+  number           Int?      @db.SmallInt
+  create_user      BigInt?
+  update_user      BigInt?
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+  room_type        String?   @db.VarChar(20)
+
+  @@index([hotel_id], map: "hotel_id")
+  @@index([target_id], map: "target_id")
+}
+
+model bravo_hotel_room_term {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  term_id     Int?
+  target_id   Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_hotel_room_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  status      String?   @db.VarChar(50)
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "bravo_hotel_room_translations_locale_index")
+}
+
+model bravo_hotel_rooms {
+  id               BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  title            String?          @db.VarChar(255)
+  title2           String?          @db.VarChar(100)
+  content          String?          @db.Text
+  image_id         Int?
+  gallery          String?          @db.VarChar(255)
+  video            String?          @db.VarChar(255)
+  price            Decimal?         @db.Decimal(12, 2)
+  price1           Decimal?         @default(0.00) @db.Decimal(12, 2)
+  price2           Decimal?         @default(0.00) @db.Decimal(12, 2)
+  price3           Decimal?         @default(0.00) @db.Decimal(12, 2)
+  price4           Decimal?         @default(0.00) @db.Decimal(12, 2)
+  price5           Decimal?         @db.Decimal(12, 2)
+  room_type        Int              @default(1)
+  parent_id        BigInt?
+  number           Int?             @db.SmallInt
+  beds             Int?             @db.TinyInt
+  size             Int?
+  adults           Int?             @db.TinyInt
+  children         Int?             @db.TinyInt
+  status           String?          @db.VarChar(50)
+  create_user      BigInt?
+  update_user      BigInt?
+  deleted_at       DateTime?        @db.Timestamp(0)
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @db.Timestamp(0)
+  ical_import_url  String?
+  is_group         Int?             @default(0) @db.TinyInt
+  price1backup     Decimal?         @db.Decimal(12, 2)
+  min_day_stays    Int?
+  bravo_room_types bravo_room_types @relation(fields: [room_type], references: [id], onUpdate: Restrict, map: "room_type")
+
+  @@index([room_type], map: "room_type")
+}
+
+model bravo_hotel_rooms1 {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title           String?   @db.VarChar(255)
+  content         String?   @db.Text
+  image_id        Int?
+  gallery         String?   @db.VarChar(255)
+  video           String?   @db.VarChar(255)
+  price           Decimal?  @db.Decimal(12, 2)
+  price1          Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price2          Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price3          Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price4          Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price5          Decimal?  @db.Decimal(12, 2)
+  room_type       Int       @default(1)
+  parent_id       BigInt?
+  number          Int?      @db.SmallInt
+  beds            Int?      @db.TinyInt
+  size            Int?
+  adults          Int?      @db.TinyInt
+  children        Int?      @db.TinyInt
+  status          String?   @default("publish") @db.VarChar(50)
+  create_user     BigInt?
+  update_user     BigInt?
+  deleted_at      DateTime? @db.Timestamp(0)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  ical_import_url String?
+  is_group        Int?      @default(0) @db.TinyInt
+  price1backup    Decimal?  @db.Decimal(12, 2)
+  min_day_stays   Int?
+
+  @@index([room_type], map: "room_type")
+}
+
+model bravo_hotel_term {
+  id          BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  term_id     BigInt?      @db.UnsignedBigInt
+  target_id   Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime?    @db.Timestamp(0)
+  updated_at  DateTime?    @db.Timestamp(0)
+  bravo_terms bravo_terms? @relation(fields: [term_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "bht_team")
+
+  @@index([term_id], map: "bht_team")
+}
+
+model bravo_hotel_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  address     String?   @db.VarChar(255)
+  policy      String?   @db.Text
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  surrounding String?   @db.Text
+
+  @@index([locale], map: "bravo_hotel_translations_locale_index")
+}
+
+model bravo_hotel_type_tag {
+  id  BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  tag String @db.VarChar(199)
+}
+
+model bravo_hotel_update {
+  id           BigInt       @id @default(autoincrement())
+  hotel_id     BigInt       @db.UnsignedBigInt
+  updated_by   BigInt?      @db.UnsignedBigInt
+  update_at    DateTime?    @db.Timestamp(0)
+  bravo_hotels bravo_hotels @relation(fields: [hotel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "foreign_key_hotel")
+  users        users?       @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "foreign_key_user_id")
+
+  @@index([hotel_id], map: "foreign_key_hotel")
+  @@index([updated_by], map: "foreign_key_user_id")
+}
+
+model bravo_hotels {
+  id                                         BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  title                                      String?              @db.VarChar(255)
+  slug                                       String               @db.VarChar(255)
+  content                                    String?              @db.Text
+  image_id                                   BigInt?              @db.UnsignedBigInt
+  banner_image_id                            Int?
+  location_id                                BigInt?              @db.UnsignedBigInt
+  address                                    String?              @db.VarChar(255)
+  city                                       String?              @db.VarChar(200)
+  pincode                                    String?              @db.VarChar(200)
+  map_lat                                    String?              @db.VarChar(20)
+  map_lng                                    String?              @db.VarChar(20)
+  map_zoom                                   Int?
+  is_featured                                Int?                 @db.TinyInt
+  is_sanitized                               Int?                 @db.TinyInt
+  is_couple                                  Boolean?
+  is_chain                                   Int?                 @db.TinyInt
+  is_payathotel                              Boolean?             @default(true)
+  is_onlinepayment                           Boolean?
+  is_partialpayment                          Boolean?             @default(false)
+  type_tag                                   String?              @db.VarChar(100)
+  room_type                                  String               @default("1") @db.VarChar(10)
+  document_verified                          Int?                 @db.TinyInt
+  budget                                     Int?                 @db.TinyInt
+  premium                                    Int?                 @db.TinyInt
+  economic                                   Int?                 @db.TinyInt
+  gallery                                    String?              @db.VarChar(255)
+  banner_image                               Json?
+  gallery_images                             Json?
+  document_images                            Json?
+  document_image                             String?              @db.VarChar(500)
+  video                                      String?              @db.VarChar(255)
+  policy                                     String?              @db.Text
+  star_rate                                  Int?                 @db.SmallInt
+  price                                      Decimal?             @db.Decimal(12, 2)
+  price1                                     Decimal?             @default(0.00) @db.Decimal(12, 2)
+  price2                                     Decimal?             @default(0.00) @db.Decimal(12, 2)
+  price3                                     Decimal?             @default(0.00) @db.Decimal(12, 2)
+  price4                                     Decimal?             @default(0.00) @db.Decimal(12, 2)
+  price5                                     Decimal?             @db.Decimal(12, 2)
+  min_price                                  Int?
+  fulldayprice                               String?              @default("0.00") @db.VarChar(10)
+  check_in_time                              String?              @db.VarChar(255)
+  check_out_time                             String?              @db.VarChar(255)
+  allow_full_day                             Int?                 @db.SmallInt
+  sale_price                                 Decimal?             @db.Decimal(12, 2)
+  status                                     String?              @db.VarChar(50)
+  create_user                                BigInt?              @db.UnsignedBigInt
+  update_user                                BigInt?
+  deleted_at                                 DateTime?            @db.Timestamp(0)
+  created_at                                 DateTime?            @db.Timestamp(0)
+  updated_at                                 DateTime?            @db.Timestamp(0)
+  publish_at                                 DateTime?            @db.Timestamp(0)
+  publish_user                               BigInt?              @db.UnsignedBigInt
+  review_score                               Decimal?             @db.Decimal(2, 1)
+  ical_import_url                            String?
+  enable_extra_price                         Int?                 @db.TinyInt
+  extra_price                                String?              @db.Text
+  min_day_before_booking                     Int?
+  min_day_stays                              Int?
+  enable_service_fee                         Int?                 @db.TinyInt
+  service_fee                                String?              @db.Text
+  surrounding                                String?              @db.Text
+  google_star_count                          Decimal              @default(0.0) @db.Decimal(10, 1)
+  google_review                              String?              @db.VarChar(200)
+  google_rating                              Int                  @default(0)
+  email                                      String?              @db.VarChar(100)
+  phone                                      String?              @db.VarChar(11)
+  whatsapp                                   BigInt?
+  listname                                   String?              @db.VarChar(100)
+  reason                                     String?              @db.Text
+  gallery1                                   String?              @db.VarChar(255)
+  hotel_tag                                  String?              @db.VarChar(50)
+  trade_name                                 String?              @db.VarChar(200)
+  gst_in                                     String?              @db.VarChar(200)
+  pan                                        String?              @db.VarChar(20)
+  state                                      String?              @db.VarChar(20)
+  beneficiary_name                           String?              @db.VarChar(200)
+  account_number                             String?              @db.VarChar(100)
+  ifsc_code                                  String?              @db.VarChar(100)
+  vendor_commission                          Int?
+  concern_person                             String?              @db.LongText
+  s3                                         BigInt?              @db.UnsignedBigInt
+  onboarding_agent                           BigInt?              @db.UnsignedBigInt
+  bravo_dispute                              bravo_dispute[]
+  bravo_hotel_assign                         bravo_hotel_assign[]
+  bravo_hotel_gstin                          bravo_hotel_gstin[]
+  bravo_hotel_update                         bravo_hotel_update[]
+  media_files                                media_files?         @relation(fields: [image_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK7ad9adjadooia9t6wnwcd4igf")
+  bravo_locations                            bravo_locations?     @relation(fields: [location_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FKij8bt66nc60gwry8y5c8txy6g")
+  users_bravo_hotels_create_userTousers      users?               @relation("bravo_hotels_create_userTousers", fields: [create_user], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "hotels_vendor_foreign_key")
+  users_bravo_hotels_onboarding_agentTousers users?               @relation("bravo_hotels_onboarding_agentTousers", fields: [onboarding_agent], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "onboarding_agent")
+  users_bravo_hotels_publish_userTousers     users?               @relation("bravo_hotels_publish_userTousers", fields: [publish_user], references: [id], onUpdate: NoAction, map: "publish_hotel_to_user")
+  bravo_hotels_s3                            bravo_hotels_s3?     @relation(fields: [s3], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "s3")
+  bravo_phones                               bravo_phones[]
+  vendor_invoice                             vendor_invoice[]
+
+  @@unique([s3, onboarding_agent], map: "s3")
+  @@index([image_id], map: "FK7ad9adjadooia9t6wnwcd4igf")
+  @@index([slug], map: "bravo_hotels1_slug_index")
+  @@index([create_user], map: "hotels_vendor_foreign_key")
+  @@index([location_id], map: "location_relation")
+  @@index([onboarding_agent], map: "onboarding_agent")
+  @@index([publish_user], map: "publish_hotel_to_user")
+}
+
+model bravo_hotels_s3 {
+  id                     BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  onboarding_agent       BigInt         @db.UnsignedBigInt
+  title                  String?        @db.VarChar(255)
+  slug                   String         @db.VarChar(255)
+  content                String?        @db.Text
+  image_id               Int?
+  banner_image_id        Int?
+  location_id            BigInt?        @db.UnsignedBigInt
+  address                String?        @db.VarChar(255)
+  city                   String?        @db.VarChar(200)
+  pincode                String?        @db.VarChar(200)
+  map_lat                String?        @db.VarChar(20)
+  map_lng                String?        @db.VarChar(20)
+  map_zoom               Int?
+  is_featured            Int?           @db.TinyInt
+  is_sanitized           Int?           @default(1) @db.TinyInt
+  is_couple              Boolean?
+  is_chain               Int?           @db.TinyInt
+  is_payathotel          Boolean?       @default(true)
+  is_onlinepayment       Boolean?
+  is_partialpayment      Boolean?       @default(false)
+  type_tag               String?        @db.VarChar(100)
+  room_type              String         @default("1") @db.VarChar(10)
+  document_verified      Int?           @db.TinyInt
+  budget                 Int?           @db.TinyInt
+  premium                Int?           @db.TinyInt
+  economic               Int?           @db.TinyInt
+  gallery                String?        @db.VarChar(255)
+  document_image         String?        @db.VarChar(500)
+  video                  String?        @db.VarChar(255)
+  policy                 String?        @db.Text
+  star_rate              Int?           @db.SmallInt
+  price                  Decimal?       @db.Decimal(12, 2)
+  price1                 Decimal?       @default(0.00) @db.Decimal(12, 2)
+  price2                 Decimal?       @default(0.00) @db.Decimal(12, 2)
+  price3                 Decimal?       @default(0.00) @db.Decimal(12, 2)
+  price4                 Decimal?       @default(0.00) @db.Decimal(12, 2)
+  price5                 Decimal?       @default(0.00) @db.Decimal(12, 2)
+  min_price              Int?
+  fulldayprice           String?        @default("0.00") @db.VarChar(10)
+  check_in_time          String?        @db.VarChar(255)
+  check_out_time         String?        @db.VarChar(255)
+  allow_full_day         Int?           @db.SmallInt
+  sale_price             Decimal?       @db.Decimal(12, 2)
+  status                 String?        @default("pending") @db.VarChar(50)
+  create_user            BigInt?        @db.UnsignedBigInt
+  update_user            BigInt?
+  deleted_at             DateTime?      @db.Timestamp(0)
+  created_at             DateTime?      @db.Timestamp(0)
+  updated_at             DateTime?      @db.Timestamp(0)
+  publish_at             DateTime?      @db.Timestamp(0)
+  review_score           Decimal?       @db.Decimal(2, 1)
+  ical_import_url        String?
+  enable_extra_price     Int?           @db.TinyInt
+  extra_price            String?        @db.Text
+  min_day_before_booking Int?
+  min_day_stays          Int?
+  enable_service_fee     Int?           @db.TinyInt
+  service_fee            String?        @db.Text
+  surrounding            String?        @db.Text
+  google_star_count      Decimal        @default(0.0) @db.Decimal(10, 1)
+  google_review          String?        @db.VarChar(200)
+  google_rating          Int            @default(0)
+  email                  String?        @db.VarChar(100)
+  phone                  String?        @db.LongText
+  whatsapp               BigInt?
+  listname               String?        @db.VarChar(100)
+  reason                 String?        @db.Text
+  gallery1               String?        @db.VarChar(255)
+  banner_image           Json?
+  gallery_images         Json?
+  document_images        Json?
+  hotel_tag              String?        @db.VarChar(50)
+  trade_name             String?        @db.VarChar(200)
+  gst_in                 String?        @db.VarChar(200)
+  pan                    String?        @db.VarChar(20)
+  state                  String?        @db.VarChar(20)
+  beneficiary_name       String?        @db.VarChar(200)
+  account_number         String?        @db.VarChar(100)
+  ifsc_code              String?        @db.VarChar(100)
+  vendor_commission      Int?
+  concern_person         String?        @db.LongText
+  bravo_hotels           bravo_hotels[]
+  users                  users          @relation(fields: [onboarding_agent], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "onboarding_agent_user")
+
+  @@index([onboarding_agent], map: "onboarding_agent_user")
+}
+
+model bravo_location_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  trip_ideas  String?   @db.Text
+
+  @@unique([origin_id, locale], map: "bravo_location_translations_origin_id_locale_unique")
+}
+
+model bravo_locations {
+  id              BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String?        @db.VarChar(255)
+  content         String?        @db.Text
+  slug            String?        @db.VarChar(255)
+  image_id        Int?
+  map_lat         String?        @db.VarChar(20)
+  map_lng         String?        @db.VarChar(20)
+  map_zoom        Int?
+  status          String?        @db.VarChar(50)
+  lft             Int            @default(0) @map("_lft") @db.UnsignedInt
+  rgt             Int            @default(0) @map("_rgt") @db.UnsignedInt
+  parent_id       Int?           @db.UnsignedInt
+  city_id         Int?           @db.UnsignedInt
+  create_user     Int?
+  update_user     Int?
+  deleted_at      DateTime?      @db.Timestamp(0)
+  origin_id       BigInt?
+  lang            String?        @db.VarChar(10)
+  created_at      DateTime?      @db.Timestamp(0)
+  updated_at      DateTime?      @db.Timestamp(0)
+  banner_image_id Int?
+  trip_ideas      String?        @db.Text
+  name1           String?        @db.VarChar(255)
+  location_id     BigInt?
+  bravo_hotels    bravo_hotels[]
+
+  @@index([lft, rgt, parent_id], map: "bravo_locations__lft__rgt_parent_id_index")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_gstin {
+  id         BigInt    @default(0) @db.UnsignedBigInt
+  gstin      String    @db.VarChar(50)
+  hotelid    BigInt    @db.UnsignedBigInt
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  hotel_id   BigInt?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_room_bookings {
+  id                BigInt    @default(0) @db.UnsignedBigInt
+  room_id           BigInt?
+  parent_id         BigInt?
+  booking_id        BigInt?
+  start_date        DateTime? @db.Timestamp(0)
+  end_date          DateTime? @db.Timestamp(0)
+  number            Int?      @db.SmallInt
+  price             Decimal?  @db.Decimal(12, 2)
+  create_user       BigInt?
+  update_user       BigInt?
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+  span              Int?      @default(1)
+  starttime         Int?
+  total_before_fees Float     @default(0) @db.Float
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_room_dates {
+  id               BigInt    @default(0) @db.UnsignedBigInt
+  target_id        BigInt?
+  hotel_id         BigInt?
+  start_date       DateTime? @db.Timestamp(0)
+  end_date         DateTime? @db.Timestamp(0)
+  price            Decimal?  @default(0.00) @db.Decimal(12, 2)
+  price1           Decimal?  @db.Decimal(12, 2)
+  price2           Decimal?  @db.Decimal(12, 2)
+  price3           Decimal?  @db.Decimal(12, 2)
+  price4           Decimal?  @db.Decimal(12, 2)
+  price5           Decimal?  @db.Decimal(12, 2)
+  max_guests       Int?      @db.TinyInt
+  active           Int?      @default(0) @db.TinyInt
+  note_to_customer String?   @db.Text
+  note_to_admin    String?   @db.Text
+  is_instant       Int?      @default(0) @db.TinyInt
+  number           Int?      @db.SmallInt
+  create_user      BigInt?
+  update_user      BigInt?
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+  room_type        String?   @db.VarChar(20)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_room_term {
+  id          BigInt    @default(0) @db.UnsignedBigInt
+  term_id     Int?
+  target_id   Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_room_translations {
+  id          BigInt    @default(0) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  status      String?   @db.VarChar(50)
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+model bravo_luxury_hotel_rooms {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title         String?   @db.VarChar(255)
+  content       String?   @db.Text
+  image_id      Int?
+  gallery       String?   @db.VarChar(255)
+  video         String?   @db.VarChar(255)
+  parent_id     BigInt?
+  number        Int?      @db.SmallInt
+  beds          Int?      @db.TinyInt
+  size          Int?
+  adults        Int?      @db.TinyInt
+  children      Int?      @db.TinyInt
+  status        String?   @db.VarChar(50)
+  create_user   BigInt?
+  update_user   BigInt?
+  deleted_at    DateTime? @db.Timestamp(0)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  min_day_stays Int?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_term {
+  id          BigInt    @default(0) @db.UnsignedBigInt
+  term_id     Int?
+  target_id   Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_translations {
+  id          BigInt    @default(0) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  address     String?   @db.VarChar(255)
+  policy      String?   @db.Text
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  surrounding String?   @db.Text
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotel_update {
+  id         BigInt    @default(0)
+  hotel_id   BigInt    @db.UnsignedBigInt
+  updated_by BigInt?   @db.UnsignedBigInt
+  update_at  DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model bravo_luxury_hotels {
+  id                     BigInt    @default(0) @db.UnsignedBigInt
+  title                  String?   @db.VarChar(255)
+  slug                   String    @db.VarChar(255)
+  content                String?   @db.Text
+  banner_image_id        Int?
+  location_id            BigInt?   @db.UnsignedBigInt
+  address                String?   @db.VarChar(255)
+  map_lat                String?   @db.VarChar(20)
+  map_lng                String?   @db.VarChar(20)
+  is_featured            Int?      @db.TinyInt
+  is_payathotel          Boolean?  @default(true)
+  is_onlinepayment       Boolean?
+  is_partialpayment      Boolean?  @default(false)
+  gallery                String?   @db.VarChar(255)
+  documents              String?   @db.VarChar(500)
+  video                  String?   @db.VarChar(255)
+  policy                 String?   @db.Text
+  star_rate              Int?      @db.SmallInt
+  fulldayprice           String?   @default("0.00") @db.VarChar(10)
+  allow_full_day         Int?      @db.SmallInt
+  status                 String?   @db.VarChar(50)
+  create_user            BigInt?   @db.UnsignedBigInt
+  update_user            BigInt?
+  deleted_at             DateTime? @db.Timestamp(0)
+  created_at             DateTime? @db.Timestamp(0)
+  updated_at             DateTime? @db.Timestamp(0)
+  publish_at             DateTime? @db.Timestamp(0)
+  review_score           Decimal?  @db.Decimal(2, 1)
+  enable_extra_price     Int?      @db.TinyInt
+  extra_price            String?   @db.Text
+  min_day_before_booking Int?
+  enable_service_fee     Int?      @db.TinyInt
+  service_fee            String?   @db.Text
+  surrounding            String?   @db.Text
+  email                  String?   @db.VarChar(100)
+  phone                  String?   @db.VarChar(11)
+  trade_name             String?   @db.VarChar(200)
+  vendor_comission       Int?
+
+  @@ignore
+}
+
+model bravo_months {
+  ID   Int     @id @default(autoincrement())
+  name String? @db.VarChar(10)
+}
+
+model bravo_offers {
+  id       Int     @id @default(autoincrement())
+  title    String? @db.VarChar(100)
+  image_id Int?
+  content  String? @db.VarChar(200)
+}
+
+model bravo_otp {
+  id    Int      @id @default(autoincrement())
+  otp   String   @db.VarChar(6)
+  email String?  @db.VarChar(50)
+  phone String?  @db.VarChar(13)
+  valid DateTime @db.DateTime(0)
+}
+
+model bravo_payouts {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  vendor_id       BigInt?
+  amount          Decimal?  @db.Decimal(10, 2)
+  status          String?   @db.VarChar(50)
+  payout_method   String?   @db.VarChar(50)
+  account_info    String?   @db.Text
+  note_to_admin   String?   @db.Text
+  note_to_vendor  String?   @db.Text
+  last_process_by Int?
+  pay_date        DateTime? @db.Timestamp(0)
+  create_user     Int?
+  update_user     Int?
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model bravo_phones {
+  id           BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  hotel_id     BigInt       @db.UnsignedBigInt
+  phone_no     String       @db.VarChar(20)
+  bravo_hotels bravo_hotels @relation(fields: [hotel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "bht_phone")
+
+  @@index([hotel_id], map: "bht_phone")
+}
+
+model bravo_referral_booking {
+  id          Int      @id @default(autoincrement())
+  referral_id String   @db.VarChar(20)
+  booking_id  String   @db.VarChar(20)
+  status      String   @db.VarChar(20)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model bravo_referral_code {
+  id         Int      @id @default(autoincrement())
+  user_id    String?  @db.VarChar(20)
+  code       String?  @db.VarChar(20)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model bravo_referrals {
+  id          Int      @id @default(autoincrement())
+  referred_by Int
+  referred_to Int
+  booking_id  String?  @db.VarChar(20)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model bravo_review {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  object_id    Int?
+  object_model String?   @db.VarChar(255)
+  title        String?   @db.VarChar(255)
+  content      String?   @db.Text
+  rate_number  Int?
+  author_ip    String?   @db.VarChar(100)
+  status       String?   @db.VarChar(50)
+  publish_date DateTime? @db.DateTime(0)
+  create_user  BigInt?
+  update_user  BigInt?
+  deleted_at   DateTime? @db.Timestamp(0)
+  lang         String?   @db.VarChar(10)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+  vendor_id    BigInt?
+}
+
+model bravo_review_meta {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  review_id    Int?
+  object_id    Int?
+  object_model String?   @db.VarChar(255)
+  name         String?   @db.VarChar(255)
+  val          String?   @db.Text
+  create_user  Int?
+  update_user  Int?
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model bravo_room_slot_bookings {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  booking_id  Int?
+  object_id   BigInt?
+  slot_id     BigInt?
+  start_time  DateTime? @db.Time(0)
+  duration    Float?
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_room_slot_dates {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  room_id     BigInt?   @db.UnsignedBigInt
+  slot_id     BigInt?   @db.UnsignedBigInt
+  start_date  DateTime? @db.Timestamp(0)
+  end_date    DateTime? @db.Timestamp(0)
+  start_time  Int?
+  end_time    Int?
+  slot_price  Int?
+  active      Int?      @default(1) @db.TinyInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  create_user BigInt?   @db.UnsignedBigInt
+  update_user BigInt?   @db.UnsignedBigInt
+  number      Int?
+}
+
+model bravo_room_slots {
+  id          Int       @id @default(autoincrement())
+  start_time  String    @db.VarChar(45)
+  end_time    String    @db.VarChar(45)
+  room_id     String    @db.VarChar(45)
+  slot_price  String    @db.VarChar(45)
+  create_user Int?
+  update_user Int?
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model bravo_room_types {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(20)
+  bravo_hotel_rooms bravo_hotel_rooms[]
+}
+
+model bravo_seat_type {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String    @unique(map: "bravo_seat_type_code_unique")
+  name        String?
+  create_user BigInt?
+  update_user BigInt?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_seo {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  object_id    Int?
+  object_model String?   @db.VarChar(255)
+  seo_index    Int?      @db.TinyInt
+  seo_title    String?   @db.VarChar(255)
+  seo_desc     String?   @db.Text
+  seo_desc1    String?   @db.Text
+  seo_image    Int?      @default(41611)
+  seo_share    String?   @db.Text
+  create_user  BigInt?
+  update_user  BigInt?
+  origin_id    BigInt?
+  lang         String?   @db.VarChar(10)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model bravo_service_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  title       String?   @db.VarChar(255)
+  address     String?   @db.Text
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "bravo_service_translations_origin_id_locale_unique")
+}
+
+model bravo_services {
+  id                     BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title                  String?   @db.VarChar(255)
+  slug                   String    @db.VarChar(255)
+  category_id            Int?
+  location_id            Int?
+  address                String?   @db.VarChar(255)
+  map_lat                String?   @db.VarChar(20)
+  map_lng                String?   @db.VarChar(20)
+  is_featured            Int?      @db.TinyInt
+  star_rate              Int?      @db.TinyInt
+  price                  Decimal?  @db.Decimal(12, 2)
+  sale_price             Decimal?  @db.Decimal(12, 2)
+  min_people             Int?
+  max_people             Int?
+  max_guests             Int?
+  review_score           Int?
+  min_day_before_booking Int?
+  min_day_stays          Int?
+  object_id              Int?
+  object_model           String?   @db.VarChar(255)
+  status                 String?   @db.VarChar(50)
+  create_user            Int?
+  update_user            Int?
+  deleted_at             DateTime? @db.Timestamp(0)
+  created_at             DateTime? @db.Timestamp(0)
+  updated_at             DateTime? @db.Timestamp(0)
+
+  @@index([slug], map: "bravo_services_slug_index")
+}
+
+model bravo_terms {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  name             String?            @db.VarChar(255)
+  content          String?            @db.Text
+  attr_id          BigInt?            @db.UnsignedBigInt
+  slug             String?            @db.VarChar(255)
+  create_user      BigInt?
+  update_user      BigInt?
+  origin_id        BigInt?
+  lang             String?            @db.VarChar(10)
+  created_at       DateTime?          @db.Timestamp(0)
+  updated_at       DateTime?          @db.Timestamp(0)
+  deleted_at       DateTime?          @db.Timestamp(0)
+  image_id         Int?
+  icon             String?            @db.VarChar(50)
+  type             String?            @db.VarChar(100)
+  icon_name        String?            @db.VarChar(100)
+  bravo_hotel_term bravo_hotel_term[]
+  bravo_attrs      bravo_attrs?       @relation(fields: [attr_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "attrrs_foriegn_key")
+
+  @@index([attr_id], map: "attrrs_foriegn_key")
+}
+
+model bravo_terms_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "bravo_terms_translations_origin_id_locale_unique")
+}
+
+model bravo_tour_category {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  slug        String?   @db.VarChar(255)
+  status      String?   @db.VarChar(50)
+  lft         Int       @default(0) @map("_lft") @db.UnsignedInt
+  rgt         Int       @default(0) @map("_rgt") @db.UnsignedInt
+  parent_id   Int?      @db.UnsignedInt
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([lft, rgt, parent_id], map: "bravo_tour_category__lft__rgt_parent_id_index")
+}
+
+model bravo_tour_category_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "bravo_tour_category_translations_origin_id_locale_unique")
+}
+
+model bravo_tour_dates {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  target_id        BigInt?
+  start_date       DateTime? @db.Timestamp(0)
+  end_date         DateTime? @db.Timestamp(0)
+  price            Decimal?  @db.Decimal(12, 2)
+  person_types     String?   @db.Text
+  max_guests       Int?      @db.TinyInt
+  active           Int?      @default(0) @db.TinyInt
+  note_to_customer String?   @db.Text
+  note_to_admin    String?   @db.Text
+  is_instant       Int?      @default(0) @db.TinyInt
+  create_user      BigInt?
+  update_user      BigInt?
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model bravo_tour_meta {
+  id                  BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tour_id             Int?
+  enable_person_types Int?      @db.TinyInt
+  person_types        String?   @db.Text
+  enable_extra_price  Int?      @db.TinyInt
+  extra_price         String?   @db.Text
+  discount_by_people  String?   @db.Text
+  enable_open_hours   Int?      @db.TinyInt
+  open_hours          String?   @db.Text
+  create_user         Int?
+  update_user         Int?
+  created_at          DateTime? @db.Timestamp(0)
+  updated_at          DateTime? @db.Timestamp(0)
+}
+
+model bravo_tour_term {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  term_id     Int?
+  tour_id     Int?
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model bravo_tour_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  title       String?   @db.VarChar(255)
+  slug        String    @db.VarChar(255)
+  content     String?   @db.Text
+  short_desc  String?   @db.Text
+  address     String?   @db.VarChar(255)
+  faqs        String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  include     String?   @db.Text
+  exclude     String?   @db.Text
+  itinerary   String?   @db.Text
+  surrounding String?   @db.Text
+
+  @@unique([origin_id, locale], map: "bravo_tour_translations_origin_id_locale_unique")
+  @@index([slug], map: "bravo_tour_translations_slug_index")
+}
+
+model bravo_tours {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title              String?   @db.VarChar(255)
+  slug               String    @db.VarChar(255)
+  content            String?   @db.Text
+  image_id           Int?
+  banner_image_id    Int?
+  short_desc         String?   @db.Text
+  category_id        Int?
+  location_id        Int?
+  address            String?   @db.VarChar(255)
+  map_lat            String?   @db.VarChar(20)
+  map_lng            String?   @db.VarChar(20)
+  map_zoom           Int?
+  is_featured        Int?      @db.TinyInt
+  gallery            String?   @db.VarChar(255)
+  video              String?   @db.VarChar(255)
+  price              Decimal?  @db.Decimal(12, 2)
+  sale_price         Decimal?  @db.Decimal(12, 2)
+  duration           Int?
+  min_people         Int?
+  max_people         Int?
+  faqs               String?   @db.Text
+  status             String?   @db.VarChar(50)
+  publish_date       DateTime? @db.DateTime(0)
+  create_user        BigInt?
+  update_user        BigInt?
+  deleted_at         DateTime? @db.Timestamp(0)
+  origin_id          BigInt?
+  lang               String?   @db.VarChar(10)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+  default_state      Int?      @default(1) @db.TinyInt
+  include            String?   @db.Text
+  exclude            String?   @db.Text
+  itinerary          String?   @db.Text
+  review_score       Decimal?  @db.Decimal(2, 1)
+  ical_import_url    String?
+  enable_service_fee Int?      @db.TinyInt
+  service_fee        String?   @db.Text
+  surrounding        String?   @db.Text
+
+  @@index([slug], map: "bravo_tours_slug_index")
+}
+
+model bravo_user_onesignal {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt   @db.UnsignedBigInt
+  pushtoken  String   @db.Text
+  player_id  String   @db.VarChar(100)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  active     Int      @default(1) @db.TinyInt
+  users      users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_id")
+
+  @@index([user_id], map: "user_id")
+}
+
+model bravo_vendor_remark {
+  id             Int             @id @default(autoincrement())
+  remark1        String?         @db.VarChar(500)
+  remark2        String?         @db.VarChar(500)
+  remark3        String?         @db.VarChar(500)
+  support_person Int?
+  update1        Int?
+  update2        Int?
+  update3        Int?
+  u_date1        DateTime?       @db.DateTime(0)
+  u_date2        DateTime?       @db.DateTime(0)
+  u_date3        DateTime?       @db.DateTime(0)
+  booking_id     BigInt?         @unique(map: "booking_id") @db.UnsignedBigInt
+  created_at     DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?       @default(now()) @db.Timestamp(0)
+  remark4        String?         @db.Text
+  remark5        String?         @db.Text
+  remark6        String?         @db.Text
+  update4        BigInt?
+  update5        BigInt?
+  update6        BigInt?
+  u_date4        DateTime?       @db.DateTime(0)
+  u_date5        DateTime?       @db.DateTime(0)
+  u_date6        DateTime?       @db.DateTime(0)
+  bravo_bookings bravo_bookings? @relation(fields: [booking_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "bravo_vendor_remark_booking_foreign_key")
+}
+
+model core_inbox {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  from_user    BigInt?
+  to_user      BigInt?
+  object_id    BigInt?
+  object_model String?   @db.VarChar(50)
+  type         Int?      @default(0) @db.TinyInt
+  create_user  Int?
+  update_user  Int?
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model core_inbox_messages {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  inbox_id    BigInt?
+  from_user   BigInt?
+  to_user     BigInt?
+  content     String?   @db.Text
+  type        Int?      @default(0) @db.TinyInt
+  is_read     Int?      @default(0) @db.TinyInt
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_languages {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  locale        String?   @db.VarChar(10)
+  name          String?   @db.VarChar(255)
+  flag          String?   @db.VarChar(255)
+  status        String?   @db.VarChar(20)
+  create_user   Int?
+  update_user   Int?
+  last_build_at DateTime? @db.Timestamp(0)
+  deleted_at    DateTime? @db.Timestamp(0)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model core_menu_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  items       String?   @db.LongText
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "core_menu_translations_locale_index")
+}
+
+model core_menus {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  items       String?   @db.LongText
+  create_user Int?
+  update_user Int?
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_model_has_permissions {
+  permission_id    Int              @db.UnsignedInt
+  model_type       String
+  model_id         BigInt           @db.UnsignedBigInt
+  core_permissions core_permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "core_model_has_permissions_permission_id_foreign")
+
+  @@id([permission_id, model_id, model_type])
+  @@index([model_id, model_type], map: "core_model_has_permissions_model_id_model_type_index")
+}
+
+model core_model_has_roles {
+  role_id    Int        @db.UnsignedInt
+  model_type String     @default("App\\User")
+  model_id   BigInt     @db.UnsignedBigInt
+  core_roles core_roles @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "core_model_has_roles_role_id_foreign")
+  users      users      @relation(fields: [model_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_roles_forenginkey")
+
+  @@id([role_id, model_id, model_type])
+  @@index([model_id, model_type], map: "core_model_has_roles_model_id_model_type_index")
+  @@index([role_id], map: "role_id")
+}
+
+model core_news {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  slug        String?   @db.VarChar(255)
+  status      String?   @db.VarChar(50)
+  cat_id      Int?
+  image_id    Int?
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_news_category {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  slug        String?   @db.VarChar(255)
+  status      String?   @db.VarChar(50)
+  lft         Int       @default(0) @map("_lft") @db.UnsignedInt
+  rgt         Int       @default(0) @map("_rgt") @db.UnsignedInt
+  parent_id   Int?      @db.UnsignedInt
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+
+  @@index([lft, rgt, parent_id], map: "core_news_category__lft__rgt_parent_id_index")
+}
+
+model core_news_category_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "core_news_category_translations_locale_index")
+}
+
+model core_news_tag {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  news_id     Int?
+  tag_id      Int?
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_news_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "core_news_translations_locale_index")
+}
+
+model core_notifications {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  from_user        BigInt?
+  to_user          BigInt?
+  is_read          Int?      @default(0) @db.TinyInt
+  type             String?   @db.VarChar(50)
+  type_group       String?   @db.VarChar(50)
+  target_id        BigInt?
+  target_parent_id BigInt?
+  params           String?   @db.Text
+  create_user      Int?
+  update_user      Int?
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model core_page_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  short_desc  String?   @db.Text
+  create_user BigInt?
+  update_user BigInt?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "core_page_translations_origin_id_locale_unique")
+  @@index([locale], map: "core_page_translations_locale_index")
+}
+
+model core_pages {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug         String    @db.VarChar(255)
+  title        String?   @db.VarChar(255)
+  content      String?   @db.Text
+  short_desc   String?   @db.Text
+  status       String?   @db.VarChar(50)
+  publish_date DateTime? @db.DateTime(0)
+  image_id     Int?
+  template_id  Int?
+  create_user  BigInt?
+  update_user  BigInt?
+  deleted_at   DateTime? @db.Timestamp(0)
+  origin_id    BigInt?
+  lang         String?   @db.VarChar(10)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+  header_style String?   @db.VarChar(255)
+  custom_logo  Int?
+
+  @@index([slug], map: "core_pages_slug_index")
+}
+
+model core_permissions {
+  id                         Int                          @id @default(autoincrement()) @db.UnsignedInt
+  name                       String
+  guard_name                 String
+  created_at                 DateTime?                    @db.Timestamp(0)
+  updated_at                 DateTime?                    @db.Timestamp(0)
+  core_model_has_permissions core_model_has_permissions[]
+  core_role_has_permissions  core_role_has_permissions[]
+}
+
+model core_role_has_permissions {
+  permission_id    Int              @db.UnsignedInt
+  role_id          Int              @db.UnsignedInt
+  core_permissions core_permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "core_role_has_permissions_permission_id_foreign")
+  core_roles       core_roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "core_role_has_permissions_role_id_foreign")
+
+  @@id([permission_id, role_id])
+  @@index([role_id], map: "core_role_has_permissions_role_id_foreign")
+}
+
+model core_roles {
+  id                        Int                         @id @default(autoincrement()) @db.UnsignedInt
+  name                      String
+  guard_name                String
+  origin_id                 BigInt?
+  lang                      String?                     @db.VarChar(10)
+  created_at                DateTime?                   @db.Timestamp(0)
+  updated_at                DateTime?                   @db.Timestamp(0)
+  core_model_has_roles      core_model_has_roles[]
+  core_role_has_permissions core_role_has_permissions[]
+}
+
+model core_settings {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  group       String?   @db.VarChar(50)
+  val         String?   @db.Text
+  autoload    Int?      @db.TinyInt
+  create_user Int?
+  update_user Int?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_subscribers {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  email       String?   @db.VarChar(255)
+  first_name  String?   @db.VarChar(255)
+  last_name   String?   @db.VarChar(255)
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_tag_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "core_tag_translations_locale_index")
+}
+
+model core_tags {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  slug        String?   @db.VarChar(255)
+  content     String?   @db.VarChar(255)
+  create_user String?   @db.VarChar(255)
+  update_user String?   @db.VarChar(255)
+  deleted_at  DateTime? @db.Timestamp(0)
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_template_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   Int       @db.UnsignedInt
+  locale      String
+  title       String?   @db.VarChar(255)
+  content     String?   @db.LongText
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([locale], map: "core_template_translations_locale_index")
+}
+
+model core_templates {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title       String?   @db.VarChar(255)
+  content     String?   @db.LongText
+  type_id     Int?
+  create_user Int?
+  update_user Int?
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model core_translations {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  locale        String?   @db.VarChar(10)
+  string        String?   @db.Text
+  parent_id     BigInt?
+  create_user   Int?
+  update_user   Int?
+  last_build_at DateTime? @db.Timestamp(0)
+  deleted_at    DateTime? @db.Timestamp(0)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model core_vendor_plan_meta {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  vendor_plan_id Int
+  post_type      String?   @db.VarChar(255)
+  enable         Int?      @db.TinyInt
+  maximum_create Int?
+  auto_publish   Int?      @db.TinyInt
+  commission     Int?
+  create_user    BigInt?
+  update_user    BigInt?
+  deleted_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model core_vendor_plans {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String
+  base_commission Int
+  status          String?   @db.VarChar(20)
+  publish_date    DateTime? @db.DateTime(0)
+  create_user     BigInt?
+  update_user     BigInt?
+  deleted_at      DateTime? @db.Timestamp(0)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model coupon {
+  id           Int       @id @default(autoincrement())
+  code         String?   @db.VarChar(20)
+  name         String?   @db.VarChar(200)
+  percent      Int?
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  hotel_id     Int?
+  max_discount String    @db.VarChar(10)
+  limit_person Int?
+  status       String?   @db.VarChar(20)
+}
+
+model favorites {
+  id          BigInt    @id
+  user_id     BigInt
+  favorite_id BigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model hibernate_sequence {
+  next_val BigInt?
+
+  @@ignore
+}
+
+model hotel_gallery {
+  id       BigInt @id
+  hotel_id BigInt
+  image_id BigInt
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model location_category {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  icon_class  String?   @db.VarChar(255)
+  content     String?   @db.Text
+  slug        String?   @db.VarChar(255)
+  status      String?   @db.VarChar(50)
+  lft         Int       @default(0) @map("_lft") @db.UnsignedInt
+  rgt         Int       @default(0) @map("_rgt") @db.UnsignedInt
+  parent_id   Int?      @db.UnsignedInt
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  origin_id   BigInt?
+  lang        String?   @db.VarChar(10)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([lft, rgt, parent_id], map: "location_category__lft__rgt_parent_id_index")
+}
+
+model location_category_translations {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  origin_id   BigInt?
+  locale      String?   @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@unique([origin_id, locale], map: "location_category_translations_origin_id_locale_unique")
+}
+
+model media_files {
+  id             BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  file_name      String?        @db.VarChar(255)
+  file_path      String?        @db.VarChar(255)
+  file_size      String?        @db.VarChar(255)
+  file_type      String?        @db.VarChar(255)
+  file_extension String?        @db.VarChar(255)
+  create_user    Int?
+  update_user    Int?
+  deleted_at     DateTime?      @db.Timestamp(0)
+  app_id         Int?
+  app_user_id    Int?
+  file_width     Int?
+  file_height    Int?
+  created_at     DateTime?      @db.Timestamp(0)
+  updated_at     DateTime?      @db.Timestamp(0)
+  file_edit      Int?           @default(0) @db.TinyInt
+  bravo_hotels   bravo_hotels[]
+}
+
+model messages {
+  id         BigInt    @id
+  type       String
+  from_id    BigInt
+  to_id      BigInt
+  body       String?   @db.VarChar(5000)
+  attachment String?
+  seen       Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String
+  batch     Int
+}
+
+model new_bravo_customer_remark {
+  id             BigInt         @id @default(autoincrement())
+  remark         String         @db.Text
+  booking_id     BigInt         @db.UnsignedBigInt
+  updateperson   BigInt         @db.UnsignedBigInt
+  u_date         DateTime       @db.DateTime(0)
+  bravo_bookings bravo_bookings @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "booking_new_customer_foreign_key")
+  users          users          @relation(fields: [updateperson], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_new_customer_foreign_key")
+
+  @@index([booking_id], map: "booking_new_customer_foreign_key")
+  @@index([updateperson], map: "user_new_customer_foreign_key")
+}
+
+model new_bravo_vendor_remark {
+  id             Int            @id @default(autoincrement())
+  remark         String         @db.Text
+  booking_id     BigInt         @db.UnsignedBigInt
+  updateperson   BigInt         @db.UnsignedBigInt
+  u_date         DateTime       @db.DateTime(0)
+  bravo_bookings bravo_bookings @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "booking_new_vendor_foreign_key")
+  users          users          @relation(fields: [updateperson], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_foreign_key")
+
+  @@index([booking_id], map: "booking_new_vendor_foreign_key")
+  @@index([updateperson], map: "user_foreign_key")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model notifications {
+  id              String    @db.Char(36)
+  type            String
+  notifiable_type String
+  notifiable_id   BigInt    @db.UnsignedBigInt
+  data            String    @db.Text
+  read_at         DateTime? @db.Timestamp(0)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model password_resets {
+  email      String
+  token      String
+  created_at DateTime? @db.Timestamp(0)
+
+  @@index([email], map: "password_resets_email_index")
+  @@ignore
+}
+
+model rzp_order_bookings {
+  id                  BigInt         @id @default(autoincrement())
+  order_id            String         @db.VarChar(100)
+  order_data          String         @db.Text
+  booking_id          BigInt         @db.UnsignedBigInt
+  paid                Boolean        @default(false)
+  created_at          DateTime       @default(now()) @db.Timestamp(0)
+  razorpay_payment_id String?        @db.VarChar(255)
+  bravo_bookings      bravo_bookings @relation(fields: [booking_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "rzpBookingId_to_bravobooking")
+
+  @@index([booking_id], map: "booking_id")
+}
+
+model rzp_order_invoice {
+  id                  BigInt   @id @default(autoincrement())
+  order_id            String   @db.VarChar(100)
+  order_data          String   @db.Text
+  invoice_id          BigInt   @db.UnsignedBigInt
+  paid                Boolean  @default(false)
+  created_at          DateTime @default(now()) @db.Timestamp(0)
+  razorpay_payment_id String?  @db.VarChar(255)
+}
+
+model social_forums {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String?   @db.VarChar(255)
+  content     String?   @db.Text
+  slug        String?   @db.VarChar(255)
+  status      String?   @db.VarChar(50)
+  icon        String?   @db.VarChar(50)
+  icon_image  BigInt?
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model social_group_user {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     BigInt?
+  group_id    BigInt?
+  role        String?   @db.VarChar(50)
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model social_groups {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name         String?   @db.VarChar(255)
+  content      String?   @db.Text
+  slug         String?   @db.VarChar(255)
+  status       String?   @db.VarChar(50)
+  icon         String?   @db.VarChar(50)
+  icon_image   BigInt?
+  banner_image BigInt?
+  type         String?   @db.VarChar(50)
+  owner_id     BigInt?
+  category_id  BigInt?
+  create_user  Int?
+  update_user  Int?
+  deleted_at   DateTime? @db.Timestamp(0)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model social_post_comments {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  post_id     BigInt?
+  content     String?   @db.Text
+  status      String?   @db.VarChar(50)
+  type        String?   @db.VarChar(50)
+  user_id     BigInt?
+  file_id     BigInt?
+  file_ids    String?   @db.Text
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model social_posts {
+  id                  BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  content             String?   @db.Text
+  status              String?   @db.VarChar(50)
+  type                String?   @db.VarChar(50)
+  forum_id            BigInt?
+  group_id            BigInt?
+  user_id             BigInt?
+  file_id             BigInt?
+  file_ids            String?   @db.Text
+  publish_date        DateTime? @db.DateTime(0)
+  comment_disabled_by BigInt?
+  privary             String?   @db.VarChar(30)
+  create_user         Int?
+  update_user         Int?
+  deleted_at          DateTime? @db.Timestamp(0)
+  created_at          DateTime? @db.Timestamp(0)
+  updated_at          DateTime? @db.Timestamp(0)
+  privacy             String?   @db.VarChar(30)
+}
+
+model social_user_follow {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  from_user   BigInt?
+  to_user     BigInt?
+  create_user Int?
+  update_user Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model user_cashbacks {
+  id          Int       @id @default(autoincrement())
+  sender      String?   @db.VarChar(100)
+  amount      Float?    @db.Float
+  type        String?   @db.VarChar(100)
+  customer_id Int?
+  active      Int?
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+  booking_id  Int?
+}
+
+model user_meta {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     Int?
+  name        String?   @db.VarChar(255)
+  val         String?   @db.Text
+  create_user Int?
+  update_user Int?
+  deleted_at  DateTime? @db.Timestamp(0)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model user_transactions {
+  id                                                           BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  payable_type                                                 String
+  payable_id                                                   BigInt                 @db.UnsignedBigInt
+  wallet_id                                                    BigInt?                @db.UnsignedBigInt
+  type                                                         user_transactions_type
+  amount                                                       Decimal                @db.Decimal(64, 0)
+  confirmed                                                    Boolean
+  meta                                                         String?                @db.Text
+  uuid                                                         String                 @unique(map: "user_transactions_uuid_unique") @db.Char(36)
+  created_at                                                   DateTime?              @db.Timestamp(0)
+  updated_at                                                   DateTime?              @db.Timestamp(0)
+  create_user                                                  Int?
+  update_user                                                  Int?
+  payment_id                                                   BigInt?
+  booking_id                                                   BigInt?
+  user_wallets                                                 user_wallets?          @relation(fields: [wallet_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_transactions_wallet_id_foreign")
+  user_transfers_user_transfers_deposit_idTouser_transactions  user_transfers[]       @relation("user_transfers_deposit_idTouser_transactions")
+  user_transfers_user_transfers_withdraw_idTouser_transactions user_transfers[]       @relation("user_transfers_withdraw_idTouser_transactions")
+
+  @@index([payable_type, payable_id, confirmed], map: "payable_confirmed_ind")
+  @@index([payable_type, payable_id, type, confirmed], map: "payable_type_confirmed_ind")
+  @@index([payable_type, payable_id, type], map: "payable_type_ind")
+  @@index([payable_type, payable_id], map: "user_transactions_payable_type_payable_id_index")
+  @@index([type], map: "user_transactions_type_index")
+  @@index([wallet_id], map: "user_transactions_wallet_id_foreign")
+}
+
+model user_transfers {
+  id                                                              BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  from_type                                                       String
+  from_id                                                         BigInt                      @db.UnsignedBigInt
+  to_type                                                         String
+  to_id                                                           BigInt                      @db.UnsignedBigInt
+  status                                                          user_transfers_status       @default(transfer)
+  status_last                                                     user_transfers_status_last?
+  deposit_id                                                      BigInt                      @db.UnsignedBigInt
+  withdraw_id                                                     BigInt                      @db.UnsignedBigInt
+  discount                                                        Decimal                     @default(0) @db.Decimal(64, 0)
+  fee                                                             Decimal                     @default(0) @db.Decimal(64, 0)
+  uuid                                                            String                      @unique(map: "user_transfers_uuid_unique") @db.Char(36)
+  created_at                                                      DateTime?                   @db.Timestamp(0)
+  updated_at                                                      DateTime?                   @db.Timestamp(0)
+  create_user                                                     Int?
+  update_user                                                     Int?
+  user_transactions_user_transfers_deposit_idTouser_transactions  user_transactions           @relation("user_transfers_deposit_idTouser_transactions", fields: [deposit_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_transfers_deposit_id_foreign")
+  user_transactions_user_transfers_withdraw_idTouser_transactions user_transactions           @relation("user_transfers_withdraw_idTouser_transactions", fields: [withdraw_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_transfers_withdraw_id_foreign")
+
+  @@index([deposit_id], map: "user_transfers_deposit_id_foreign")
+  @@index([from_type, from_id], map: "user_transfers_from_type_from_id_index")
+  @@index([to_type, to_id], map: "user_transfers_to_type_to_id_index")
+  @@index([withdraw_id], map: "user_transfers_withdraw_id_foreign")
+}
+
+model user_upgrade_request {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id       Int?
+  role_request  Int?
+  approved_time DateTime? @db.DateTime(0)
+  status        String?   @db.VarChar(50)
+  approved_by   Int?
+  create_user   Int?
+  update_user   Int?
+  deleted_at    DateTime? @db.Timestamp(0)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model user_wallets {
+  id                BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  holder_type       String
+  holder_id         BigInt              @db.UnsignedBigInt
+  name              String
+  slug              String
+  description       String?
+  balance           Decimal             @default(0) @db.Decimal(64, 0)
+  cash_balance      Decimal             @default(0) @db.Decimal(64, 0)
+  decimal_places    Int                 @default(2) @db.SmallInt
+  created_at        DateTime?           @db.Timestamp(0)
+  updated_at        DateTime?           @db.Timestamp(0)
+  create_user       Int?
+  update_user       Int?
+  user_transactions user_transactions[]
+
+  @@unique([holder_type, holder_id, slug], map: "user_wallets_holder_type_holder_id_slug_unique")
+  @@index([holder_type, holder_id], map: "user_wallets_holder_type_holder_id_index")
+  @@index([slug], map: "user_wallets_slug_index")
+}
+
+model user_wishlist {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  object_id    Int?
+  object_model String?   @db.VarChar(255)
+  user_id      Int?
+  create_user  Int?
+  update_user  Int?
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model users {
+  id                                                           BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  name                                                         String
+  first_name                                                   String?                     @db.VarChar(255)
+  last_name                                                    String?                     @db.VarChar(255)
+  email                                                        String                      @unique(map: "email")
+  active_status                                                Boolean                     @default(false)
+  dark_mode                                                    Boolean                     @default(false)
+  messenger_color                                              String                      @default("#2180f3")
+  avatar                                                       String                      @default("avatar.png")
+  email_verified_at                                            DateTime?                   @db.Timestamp(0)
+  password                                                     String?
+  address                                                      String?                     @db.VarChar(255)
+  address2                                                     String?                     @db.VarChar(255)
+  phone                                                        String?                     @db.VarChar(30)
+  birthday                                                     DateTime?                   @db.Date
+  city                                                         String?                     @db.VarChar(255)
+  state                                                        String?                     @db.VarChar(255)
+  country                                                      String?                     @db.VarChar(255)
+  zip_code                                                     Int?
+  avatar_id                                                    BigInt?                     @default(212562)
+  bio                                                          String?                     @db.Text
+  status                                                       String?                     @db.VarChar(20)
+  create_user                                                  Int?
+  update_user                                                  Int?
+  vendor_commission_amount                                     Int?
+  vendor_commission_type                                       String?                     @db.VarChar(30)
+  deleted_at                                                   DateTime?                   @db.Timestamp(0)
+  remember_token                                               String?                     @db.VarChar(100)
+  created_at                                                   DateTime?                   @db.Timestamp(0)
+  updated_at                                                   DateTime?                   @db.Timestamp(0)
+  last_active                                                  DateTime?                   @db.Timestamp(0)
+  user_ip                                                      String?                     @db.VarChar(20)
+  user_ip_location                                             String?                     @db.VarChar(100)
+  payment_gateway                                              String?                     @db.VarChar(30)
+  total_guests                                                 Int?
+  locale                                                       String?                     @db.VarChar(10)
+  business_name                                                String?                     @db.VarChar(255)
+  verify_submit_status                                         String?                     @db.VarChar(30)
+  is_verified                                                  Int?                        @db.SmallInt
+  user_ip_location1                                            String?                     @db.VarChar(100)
+  user_name                                                    String?                     @unique(map: "users_user_name_unique")
+  app                                                          Boolean?
+  boi                                                          String?                     @db.VarChar(255)
+  app_version                                                  String?                     @db.VarChar(20)
+  booking_collection_remark                                    booking_collection_remark[]
+  bravo_bookings                                               bravo_bookings[]
+  bravo_hotel_assign_bravo_hotel_assign_deleted_byTousers      bravo_hotel_assign[]        @relation("bravo_hotel_assign_deleted_byTousers")
+  bravo_hotel_assign_bravo_hotel_assign_updated_byTousers      bravo_hotel_assign[]        @relation("bravo_hotel_assign_updated_byTousers")
+  bravo_hotel_assign_bravo_hotel_assign_assign_agent_idTousers bravo_hotel_assign[]        @relation("bravo_hotel_assign_assign_agent_idTousers")
+  bravo_hotel_assign_bravo_hotel_assign_assign_byTousers       bravo_hotel_assign[]        @relation("bravo_hotel_assign_assign_byTousers")
+  bravo_hotel_update                                           bravo_hotel_update[]
+  bravo_hotels_bravo_hotels_create_userTousers                 bravo_hotels[]              @relation("bravo_hotels_create_userTousers")
+  bravo_hotels_bravo_hotels_onboarding_agentTousers            bravo_hotels[]              @relation("bravo_hotels_onboarding_agentTousers")
+  bravo_hotels_bravo_hotels_publish_userTousers                bravo_hotels[]              @relation("bravo_hotels_publish_userTousers")
+  bravo_hotels_s3                                              bravo_hotels_s3[]
+  bravo_user_onesignal                                         bravo_user_onesignal[]
+  core_model_has_roles                                         core_model_has_roles[]
+  new_bravo_customer_remark                                    new_bravo_customer_remark[]
+  new_bravo_vendor_remark                                      new_bravo_vendor_remark[]
+  vendor_invoice_vendor_invoice_status_update_personTousers    vendor_invoice[]            @relation("vendor_invoice_status_update_personTousers")
+  vendor_invoice_vendor_invoice_payment_method_personTousers   vendor_invoice[]            @relation("vendor_invoice_payment_method_personTousers")
+  vendor_invoice_vendor_invoice_vendor_idTousers               vendor_invoice[]            @relation("vendor_invoice_vendor_idTousers")
+  vendor_invoice_remark                                        vendor_invoice_remark[]
+}
+
+model vendor_invoice {
+  id                                                Int                     @id @default(autoincrement())
+  month                                             String?                 @db.VarChar(50)
+  year                                              String?                 @db.VarChar(50)
+  hotel_total                                       Float?
+  hourlyrooms_total                                 Float?
+  chain_hotel_total                                 String?                 @db.VarChar(10)
+  chain_hourlyrooms_total                           String?                 @db.VarChar(10)
+  paid                                              String?                 @db.VarChar(50)
+  vendor_id                                         BigInt?                 @db.UnsignedBigInt
+  hotel_id                                          BigInt?                 @db.UnsignedBigInt
+  status                                            String?                 @db.VarChar(50)
+  status_update_person                              BigInt?                 @db.UnsignedBigInt
+  status_update_time                                DateTime?               @default(now()) @db.DateTime(0)
+  created_at                                        DateTime?               @default(now()) @db.Timestamp(0)
+  updated_at                                        DateTime?               @default(now()) @db.Timestamp(0)
+  payment_method                                    String?                 @db.VarChar(50)
+  payment_method_person                             BigInt?                 @db.UnsignedBigInt
+  payment_method_update                             DateTime?               @default(now()) @db.DateTime(0)
+  bravo_dispute                                     bravo_dispute[]
+  bravo_hotels                                      bravo_hotels?           @relation(fields: [hotel_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FKghookw9ucha11xy3jjnct9oa0")
+  users_vendor_invoice_status_update_personTousers  users?                  @relation("vendor_invoice_status_update_personTousers", fields: [status_update_person], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "StatusUpdatePerson")
+  users_vendor_invoice_payment_method_personTousers users?                  @relation("vendor_invoice_payment_method_personTousers", fields: [payment_method_person], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payment_method_updatePerson_foreign_key")
+  users_vendor_invoice_vendor_idTousers             users?                  @relation("vendor_invoice_vendor_idTousers", fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "vendor_relation")
+  vendor_invoice_remark                             vendor_invoice_remark[]
+
+  @@index([status_update_person], map: "StatusUpdatePerson")
+  @@index([hotel_id], map: "hotel_relation")
+  @@index([payment_method_person], map: "status_updateperson_relation")
+  @@index([vendor_id], map: "vendor_relation")
+}
+
+model vendor_invoice_remark {
+  id                Int            @id @default(autoincrement())
+  vendor_invoice_id Int
+  updatepersonid    BigInt?        @db.UnsignedBigInt
+  remark            String         @db.Text
+  created_at        DateTime       @default(now()) @db.DateTime(0)
+  vendor_invoice    vendor_invoice @relation(fields: [vendor_invoice_id], references: [id], onUpdate: Restrict, map: "foreign_key_vendor_invoice")
+  users             users?         @relation(fields: [updatepersonid], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "foreign_key_who_added_remark")
+
+  @@index([vendor_invoice_id], map: "foreign_key_vendor_invoice")
+  @@index([updatepersonid], map: "foreign_key_who_added_remark")
+}
+
+model vendor_payment {
+  id                 Int       @id @default(autoincrement())
+  payment_gateway    String    @db.VarChar(50)
+  invoice_id         Int?
+  currency           String?   @default("inr") @db.VarChar(10)
+  rzp_order_id       String?   @db.VarChar(30)
+  rzp_payment_id     String?   @db.VarChar(30)
+  total_amount       Int?
+  paid               Int?
+  status             String?   @db.VarChar(10)
+  created_at         DateTime? @default(now()) @db.Timestamp(0)
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+  logs               String?   @db.Text
+  converted_amount   Decimal?  @db.Decimal(10, 2)
+  converted_currency String?   @db.VarChar(10)
+  exchange_rate      Decimal?  @db.Decimal(10, 2)
+}
+
+model vendor_voucher {
+  id          Int       @id @default(autoincrement())
+  booking_id  Int?
+  vendor_id   Int?
+  customer_id Int?
+  hotel_id    Int?
+  base_price  String?   @db.VarChar(200)
+  total       String?   @db.VarChar(20)
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model vendors_plan_payments {
+  id              BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  vendor_id       Int
+  amount          Int
+  payment_gateway String?
+  free_trial      Int
+  price_per       vendors_plan_payments_price_per  @default(onetime)
+  price_unit      vendors_plan_payments_price_unit @default(day)
+  status          String?                          @db.VarChar(20)
+  end_date        DateTime?                        @db.DateTime(0)
+  created_at      DateTime?                        @db.Timestamp(0)
+  updated_at      DateTime?                        @db.Timestamp(0)
+}
+
+enum user_transactions_type {
+  deposit
+  withdraw
+}
+
+enum bookings_config_start_day {
+  mon
+  sun
+}
+
+enum user_transfers_status {
+  exchange
+  transfer
+  paid
+  refund
+  gift
+}
+
+enum vendors_plan_payments_price_per {
+  onetime
+  per_time
+}
+
+enum bookings_config_date_format {
+  us
+  eu
+}
+
+enum user_transfers_status_last {
+  exchange
+  transfer
+  paid
+  refund
+  gift
+}
+
+enum vendors_plan_payments_price_unit {
+  day
+  month
+  year
+}
+
+enum bookings_config_click_past_dates {
+  on
+  off
 }
